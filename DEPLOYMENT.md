@@ -84,12 +84,15 @@ Render will deploy automatically. Monitor **Logs** for errors.
 Once deployed:
 
 1. **Check live URL**:
+
    ```bash
    curl https://web3-bookmark-api.onrender.com
    ```
+
    You should see the React app (HTML).
 
 2. **Test API**:
+
    ```bash
    # health check (should fail with 401 if you're not logged in, which is expected)
    curl https://web3-bookmark-api.onrender.com/api/profile
@@ -106,18 +109,22 @@ Once deployed:
 ## Troubleshooting
 
 ### "Cannot find module 'dotenv'"
+
 - **Cause**: `npm install` didn't run during build
 - **Fix**: Render should run `npm install` automatically. Check **Build Logs** in Render Dashboard.
 
 ### "DATABASE_URL is required"
+
 - **Cause**: Environment variables not set or not linked correctly
 - **Fix**: In Render, go to **Environment** tab and verify `DATABASE_URL` is populated from the database service.
 
 ### "Address already in use"
+
 - **Cause**: When manually running locally with Render database
 - **Fix**: Render assigns `PORT` automatically; your code respects it (`process.env.PORT || 5173`).
 
 ### "ECONNREFUSED: connect ECONNREFFUSED"
+
 - **Cause**: Database not yet initialized
 - **Fix**: Database takes ~30 seconds to spin up. Wait, then trigger a redeploy by pushing a commit to `main`.
 
@@ -160,11 +167,10 @@ Once linked, every push to the `main` branch auto-deploys:
 
 ## Cost & Limits (Free Tier)
 
-| Service      | Free Tier Limit          | Note                        |
-|--------------|--------------------------|---------------------------|
-| Web Service  | 750 hrs/month spinning | Sleeps after 15 min inactivity |
-| PostgreSQL   | 0.5 GB storage          | Doesn't spin down          |
-| Bandwidth    | 100 GB/month            | Shared outbound            |
+| Service     | Free Tier Limit        | Note                           |
+| ----------- | ---------------------- | ------------------------------ |
+| Web Service | 750 hrs/month spinning | Sleeps after 15 min inactivity |
+| PostgreSQL  | 0.5 GB storage         | Doesn't spin down              |
+| Bandwidth   | 100 GB/month           | Shared outbound                |
 
 For production workloads, upgrade to **Starter** or **Standard** plans.
-
