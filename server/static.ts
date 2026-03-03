@@ -13,8 +13,9 @@ export function serveStatic(app: Express) {
 
   app.use(express.static(distPath));
 
-  // fall through to index.html for any non-matched route (SPA fallback)
-  app.use("*", (_req, res) => {
+  // Fall through to index.html for any non-matched route (SPA fallback).
+  // Use a pathless middleware for Express 5 compatibility.
+  app.use((_req, res) => {
     res.sendFile(path.resolve(distPath, "index.html"));
   });
 }
