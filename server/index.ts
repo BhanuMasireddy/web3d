@@ -50,6 +50,11 @@ declare module "http" {
 const app = express();
 const httpServer = createServer(app);
 
+// Render is behind a reverse proxy; trust it so secure cookies work correctly.
+if (isProduction) {
+  app.set("trust proxy", 1);
+}
+
 app.use(
   express.json({
     verify: (req, _res, buf) => {
@@ -62,6 +67,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "dev-session-secret",
+    proxy: isProduction,
     resave: false,
     saveUninitialized: true,
     cookie: {
