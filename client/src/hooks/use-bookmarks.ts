@@ -166,6 +166,21 @@ export function useSettings() {
   });
 }
 
+export function useSharedBookmarks(userId: string | undefined) {
+  return useQuery({
+    queryKey: [api.share.get.path, userId],
+    enabled: Boolean(userId),
+    queryFn: async () => {
+      const url = buildUrl(api.share.get.path, { userId: userId as string });
+      const res = await fetch(url);
+      if (!res.ok) {
+        throw new Error(await parseErrorMessage(res, "Failed to fetch shared space"));
+      }
+      return api.share.get.responses[200].parse(await res.json());
+    },
+  });
+}
+
 export function useUpdateSettings() {
   const queryClient = useQueryClient();
   return useMutation({

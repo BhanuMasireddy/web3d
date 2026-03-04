@@ -11,6 +11,7 @@ import {
 } from "@shared/schema";
 import { z } from "zod";
 import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
+import { registerShareRoutes } from "./routes/shareRoutes";
 
 declare module "express-session" {
   interface SessionData {
@@ -44,6 +45,8 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express,
 ): Promise<Server> {
+  app.use("/api/share", registerShareRoutes());
+
   app.get("/api/health", (_req, res) => {
     res.status(200).json({ status: "ok" });
   });

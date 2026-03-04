@@ -10,6 +10,7 @@ import {
 } from "@/hooks/use-bookmarks";
 import { useToast } from "@/hooks/use-toast";
 import Scene from "@/components/Scene";
+import ShareModal from "@/components/ShareModal";
 import { BookmarkForm } from "@/components/BookmarkForm";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,6 +45,7 @@ import {
   Settings,
   Sparkles,
   List,
+  Share2,
 } from "lucide-react";
 import { type Bookmark, type UpsertSettings } from "@shared/schema";
 
@@ -86,6 +88,7 @@ export default function Home() {
   const [isAddOpen, setAddOpen] = useState(false);
   const [isSettingsOpen, setSettingsOpen] = useState(false);
   const [isVisibleItemsOpen, setVisibleItemsOpen] = useState(false);
+  const [isShareOpen, setShareOpen] = useState(false);
   const [focusedBookmarkId, setFocusedBookmarkId] = useState<number | null>(null);
   const [focusResetSignal, setFocusResetSignal] = useState(0);
   const [categoryFilter, setCategoryFilter] = useState("all");
@@ -174,6 +177,10 @@ export default function Home() {
     ) || [];
 
   const visibleIds = useMemo(() => new Set(filteredBookmarks.map((bookmark) => bookmark.id)), [filteredBookmarks]);
+  const shareUrl = useMemo(() => {
+    if (!profile?.id || typeof window === "undefined") return "";
+    return `${window.location.origin}/share/${profile.id}`;
+  }, [profile?.id]);
 
   useEffect(() => {
     if (focusedBookmarkId && !visibleIds.has(focusedBookmarkId)) {
@@ -456,6 +463,16 @@ export default function Home() {
                 </PopoverContent>
               </Popover>
 
+              <Button
+                variant="glass"
+                className="gap-2 px-3"
+                onClick={() => setShareOpen(true)}
+                disabled={!shareUrl}
+              >
+                <Share2 className="h-4 w-4" />
+                <span className="hidden md:inline">Share</span>
+              </Button>
+
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="glass" className="gap-2 px-2.5">
@@ -508,6 +525,8 @@ export default function Home() {
           / Search | A Add | S Settings | ESC Reset Focus
         </div>
       </div>
+
+      <ShareModal open={isShareOpen} shareUrl={shareUrl} onClose={() => setShareOpen(false)} />
     </div>
   );
 }

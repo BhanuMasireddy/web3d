@@ -26,6 +26,28 @@ export const errorSchemas = {
 };
 
 export const api = {
+  share: {
+    get: {
+      method: "GET" as const,
+      path: "/api/share/:userId" as const,
+      responses: {
+        200: z.array(
+          z.object({
+            id: z.number().int().positive(),
+            title: z.string(),
+            url: z.string(),
+            category: z.string(),
+            position: z.object({
+              x: z.number(),
+              y: z.number(),
+              z: z.number(),
+            }),
+          }),
+        ),
+        400: errorSchemas.validation,
+      },
+    },
+  },
   auth: {
     signup: {
       method: 'POST' as const,

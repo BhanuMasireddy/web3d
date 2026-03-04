@@ -9,6 +9,7 @@ import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
 import Login from "@/pages/Login";
 import Signup from "@/pages/Signup";
+import ShareSpace from "@/pages/ShareSpace";
 import { useAuthSession } from "@/hooks/use-auth";
 
 function Router() {
@@ -19,7 +20,9 @@ function Router() {
     if (isLoading) return;
 
     const onAuthPage = location === "/login" || location === "/signup";
+    const onSharePage = location.startsWith("/share/");
     if (!profile && !onAuthPage) {
+      if (onSharePage) return;
       setLocation("/login");
       return;
     }
@@ -39,6 +42,7 @@ function Router() {
 
   return (
     <Switch>
+      <Route path="/share/:userId" component={ShareSpace} />
       {!profile ? (
         <>
           <Route path="/login" component={Login} />

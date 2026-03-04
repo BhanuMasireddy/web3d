@@ -25,6 +25,10 @@ const CATEGORY_PALETTES: Record<string, string[]> = {
 const DEFAULT_PALETTE = ["#4dc7ff", "#35f3db", "#87ff63", "#74a4ff", "#ff8d5e", "#d87aff"];
 
 type Vec3 = [number, number, number];
+export type SceneBookmark = Pick<
+  Bookmark,
+  "id" | "title" | "url" | "category" | "x" | "y" | "z" | "scale" | "pinned"
+>;
 
 function getCategoryColor(category: string, indexHint = 0) {
   const key = category.toLowerCase();
@@ -59,12 +63,13 @@ function getFavicon(url: string) {
 }
 
 interface BookmarkNodeProps {
-  bookmark: Bookmark;
+  bookmark: SceneBookmark;
   position: Vec3;
   color: string;
   glowIntensity: number;
   reducedMotion: boolean;
   highContrast: boolean;
+  viewOnly: boolean;
   onSelect: (id: number, position: Vec3) => void;
   onLayoutMove: (id: number, position: Vec3) => void;
   onLayoutCommit: () => void;
@@ -78,6 +83,7 @@ function BookmarkNode({
   glowIntensity,
   reducedMotion,
   highContrast,
+  viewOnly,
   onSelect,
   onLayoutMove,
   onLayoutCommit,
@@ -102,6 +108,7 @@ function BookmarkNode({
   });
 
   const handlePointerDown = (e: ThreeEvent<PointerEvent>) => {
+    if (viewOnly) return;
     e.stopPropagation();
     movedDuringDragRef.current = false;
     setDragging(true);
@@ -117,6 +124,7 @@ function BookmarkNode({
   };
 
   const handlePointerUp = (e: ThreeEvent<PointerEvent>) => {
+    if (viewOnly) return;
     if (!dragging) return;
     e.stopPropagation();
     (e.target as Element).releasePointerCapture?.(e.pointerId);
@@ -151,11 +159,15 @@ function BookmarkNode({
           onPointerOver={(e) => {
             e.stopPropagation();
             setHovered(true);
-            document.body.style.cursor = dragging ? "grabbing" : "pointer";
+            if (!viewOnly) {
+              document.body.style.cursor = dragging ? "grabbing" : "pointer";
+            }
           }}
           onPointerOut={() => {
             setHovered(false);
-            document.body.style.cursor = "auto";
+            if (!viewOnly) {
+              document.body.style.cursor = "auto";
+            }
           }}
           onClick={(e) => {
             e.stopPropagation();
@@ -437,7 +449,7 @@ function CameraRig({
 }
 
 interface SceneProps {
-  bookmarks: Bookmark[];
+  bookmarks: SceneBookmark[];
   glowIntensity?: number;
   autoRotateSpeed?: number;
   zoomDistance?: number;
@@ -449,6 +461,7 @@ interface SceneProps {
   focusResetSignal?: number;
   onFocusChange?: (id: number | null) => void;
   onLayoutSave?: (layouts: Array<Pick<Bookmark, "id" | "x" | "y" | "z" | "scale" | "pinned">>) => void;
+  viewOnly?: boolean;
 }
 
 export default function Scene({
@@ -464,6 +477,7 @@ export default function Scene({
   focusResetSignal = 0,
   onFocusChange,
   onLayoutSave,
+  viewOnly = false,
 }: SceneProps) {
   const controlsRef = useRef<any>(null);
   const [rippleEvents, setRippleEvents] = useState<Array<{ id: number; position: Vec3; color: string; bornAt: number }>>([]);
@@ -471,7 +485,7 @@ export default function Scene({
   const [forcedFocusTarget, setForcedFocusTarget] = useState<THREE.Vector3 | null>(null);
 
   const groupedBookmarks = useMemo(() => {
-    const groups: Record<string, Bookmark[]> = {};
+    const groups: Record<string, SceneBookmark[]> = {};
 
     for (const bookmark of bookmarks) {
       if (!groups[bookmark.category]) groups[bookmark.category] = [];
@@ -622,6 +636,7 @@ export default function Scene({
             glowIntensity={glowIntensity}
             reducedMotion={reducedMotion}
             highContrast={highContrast}
+            viewOnly={viewOnly}
             onSelect={(id, nodePosition) => {
               onFocusChange?.(id);
               setRippleEvents((prev) => [
@@ -630,9 +645,11 @@ export default function Scene({
               ]);
             }}
             onLayoutMove={(id, nodePosition) => {
+              if (viewOnly) return;
               setPositions((prev) => ({ ...prev, [id]: nodePosition }));
             }}
             onLayoutCommit={() => {
+              if (viewOnly) return;
               if (!onLayoutSave) return;
               const payload = bookmarks
                 .map((b) => {
